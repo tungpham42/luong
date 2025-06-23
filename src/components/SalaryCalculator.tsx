@@ -9,6 +9,7 @@ import {
   ToggleButton,
   OverlayTrigger,
   Tooltip,
+  Modal, // Add Modal import
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import {
@@ -29,6 +30,7 @@ import {
   faInfoCircle,
   faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
+import regionData from "../data/regionData";
 
 ChartJS.register(
   CategoryScale,
@@ -55,6 +57,7 @@ const SalaryCalculator: React.FC = () => {
   const [dependents, setDependents] = useState<number>(0);
   const [applyLaw, setApplyLaw] = useState<"2023_07" | "2024_07">("2024_07");
   const [region, setRegion] = useState<"I" | "II" | "III" | "IV">("I");
+  const [showModal, setShowModal] = useState<boolean>(false); // State for modal visibility
 
   const baseSalary = applyLaw === "2024_07" ? 2340000 : 1800000;
   const bhxh = 8;
@@ -72,10 +75,10 @@ const SalaryCalculator: React.FC = () => {
       IV: 3250000,
     },
     "2024_07": {
-      I: 4680000,
-      II: 4160000,
-      III: 3640000,
-      IV: 3250000,
+      I: 4960000, // Updated for 2024_07
+      II: 4410000,
+      III: 3860000,
+      IV: 3450000,
     },
   };
 
@@ -324,8 +327,16 @@ const SalaryCalculator: React.FC = () => {
                 <option value="III">Vùng III</option>
                 <option value="IV">Vùng IV</option>
               </Form.Select>
+              {/* Button to trigger modal */}
+              <Button
+                variant="link"
+                className="p-0 mt-2 text-primary"
+                onClick={() => setShowModal(true)}
+              >
+                Xem chi tiết vùng
+              </Button>
             </Col>
-            <Col md={6} className="d-flex align-items-end">
+            <Col md={6} className="d-flex align-items-center">
               <div className="text-muted small">
                 <FontAwesomeIcon
                   icon={faInfoCircle}
@@ -352,6 +363,67 @@ const SalaryCalculator: React.FC = () => {
             Tính toán
           </Button>
         </Form>
+
+        {/* Modal for Region Details */}
+        <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Thông tin về vùng và mức lương tối thiểu</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <h5>
+              Mức lương tối thiểu vùng - Áp dụng từ{" "}
+              {regionData[applyLaw].period}
+            </h5>
+            <ul>
+              <li>
+                <strong>Vùng I:</strong>{" "}
+                {formatNumber(regionData[applyLaw].minSalaries.I)} VNĐ/tháng
+              </li>
+              <li>
+                <strong>Vùng II:</strong>{" "}
+                {formatNumber(regionData[applyLaw].minSalaries.II)} VNĐ/tháng
+              </li>
+              <li>
+                <strong>Vùng III:</strong>{" "}
+                {formatNumber(regionData[applyLaw].minSalaries.III)} VNĐ/tháng
+              </li>
+              <li>
+                <strong>Vùng IV:</strong>{" "}
+                {formatNumber(regionData[applyLaw].minSalaries.IV)} VNĐ/tháng
+              </li>
+            </ul>
+            <h5>Chi tiết các vùng:</h5>
+            <h6>Vùng I:</h6>
+            <ul>
+              {regionData[applyLaw].regions.I.map((area, index) => (
+                <li key={index}>{area}</li>
+              ))}
+            </ul>
+            <h6>Vùng II:</h6>
+            <ul>
+              {regionData[applyLaw].regions.II.map((area, index) => (
+                <li key={index}>{area}</li>
+              ))}
+            </ul>
+            <h6>Vùng III:</h6>
+            <ul>
+              {regionData[applyLaw].regions.III.map((area, index) => (
+                <li key={index}>{area}</li>
+              ))}
+            </ul>
+            <h6>Vùng IV:</h6>
+            <ul>
+              {regionData[applyLaw].regions.IV.map((area, index) => (
+                <li key={index}>{area}</li>
+              ))}
+            </ul>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Đóng
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
         {result && (
           <div className="result-box mt-5">
