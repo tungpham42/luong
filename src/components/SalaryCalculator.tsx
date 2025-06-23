@@ -7,6 +7,8 @@ import {
   Col,
   ToggleButtonGroup,
   ToggleButton,
+  OverlayTrigger,
+  Tooltip,
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import {
@@ -15,7 +17,7 @@ import {
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
+  Tooltip as ChartTooltip,
   Legend,
 } from "chart.js";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -33,7 +35,7 @@ ChartJS.register(
   LinearScale,
   BarElement,
   Title,
-  Tooltip,
+  ChartTooltip,
   Legend
 );
 
@@ -168,8 +170,29 @@ const SalaryCalculator: React.FC = () => {
           <FontAwesomeIcon icon={faChartLine} className="me-2 text-primary" />
           Công cụ tính lương Gross & Net theo quy định hiện hành
         </h2>
+        <p className="text-muted text-center mb-4">
+          Tính lương Gross sang Net hoặc Net sang Gross chính xác theo quy định
+          pháp luật Việt Nam. Công cụ giúp bạn hiểu rõ các khoản khấu trừ như
+          bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp và thuế thu nhập
+          cá nhân.
+        </p>
 
         <Form>
+          <Row className="mb-3">
+            <Col md={12}>
+              <h5 className="fw-semibold text-dark">
+                Hiểu về lương Gross và Net
+              </h5>
+              <p className="text-muted small">
+                <strong>Lương Gross</strong> là tổng thu nhập trước khi trừ các
+                khoản bảo hiểm và thuế thu nhập cá nhân.{" "}
+                <strong>Lương Net</strong> là số tiền thực nhận sau khi đã khấu
+                trừ các khoản này. Chọn loại tính toán phù hợp với nhu cầu của
+                bạn.
+              </p>
+            </Col>
+          </Row>
+
           <Row className="mb-3">
             <Col md={6}>
               <Form.Label className="fw-semibold text-dark">
@@ -182,6 +205,10 @@ const SalaryCalculator: React.FC = () => {
                 <option value="2024_07">Từ 01/07/2024</option>
                 <option value="2023_07">Từ 01/07/2023 - 30/06/2024</option>
               </Form.Select>
+              <p className="text-muted small mt-1">
+                Chọn thời điểm để áp dụng mức lương cơ sở và các quy định về bảo
+                hiểm, thuế thu nhập cá nhân theo đúng luật hiện hành.
+              </p>
             </Col>
             <Col md={6}>
               <Form.Label className="fw-semibold text-dark">
@@ -217,6 +244,22 @@ const SalaryCalculator: React.FC = () => {
             <Col md={6}>
               <Form.Label className="fw-semibold text-dark">
                 Mức lương ({type === "grossToNet" ? "Gross" : "Net"})
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip id="salary-tooltip">
+                      Nhập mức lương{" "}
+                      {type === "grossToNet"
+                        ? "Gross (tổng thu nhập trước khấu trừ)"
+                        : "Net (thực nhận sau khấu trừ)"}
+                    </Tooltip>
+                  }
+                >
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="ms-2 text-secondary"
+                  />
+                </OverlayTrigger>
               </Form.Label>
               <Form.Control
                 type="text"
@@ -228,6 +271,21 @@ const SalaryCalculator: React.FC = () => {
             <Col md={6}>
               <Form.Label className="fw-semibold text-dark">
                 Số người phụ thuộc
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip id="dependents-tooltip">
+                      Người phụ thuộc (con dưới 18 tuổi, cha mẹ già yếu...) được
+                      giảm trừ 4.4 triệu VNĐ/người khi tính thuế thu nhập cá
+                      nhân.
+                    </Tooltip>
+                  }
+                >
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="ms-2 text-secondary"
+                  />
+                </OverlayTrigger>
               </Form.Label>
               <Form.Control
                 type="number"
@@ -241,6 +299,21 @@ const SalaryCalculator: React.FC = () => {
             <Col md={6}>
               <Form.Label className="fw-semibold text-dark">
                 Chọn vùng
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip id="region-tooltip">
+                      Vùng áp dụng mức lương tối thiểu khác nhau tùy thuộc vào
+                      khu vực địa lý (thành phố lớn, tỉnh thành, vùng nông
+                      thôn...).
+                    </Tooltip>
+                  }
+                >
+                  <FontAwesomeIcon
+                    icon={faInfoCircle}
+                    className="ms-2 text-secondary"
+                  />
+                </OverlayTrigger>
               </Form.Label>
               <Form.Select
                 value={region}
@@ -281,18 +354,29 @@ const SalaryCalculator: React.FC = () => {
         </Form>
 
         {result && (
-          <div className="result-box">
-            <h4>Kết quả:</h4>
+          <div className="result-box mt-5">
+            <h4>Kết quả tính lương</h4>
+            <p className="text-muted small">
+              Dưới đây là chi tiết các khoản thu nhập và khấu trừ dựa trên thông
+              tin bạn cung cấp. Biểu đồ minh họa giúp bạn hình dung rõ hơn về tỷ
+              lệ các thành phần.
+            </p>
             <ul>
               <li>
                 <FontAwesomeIcon icon={faBriefcase} className="text-primary" />
                 <strong className="mx-2">Lương Gross:</strong>
                 {formatNumber(result.gross)} VND
+                <span className="text-muted small ms-2">
+                  (Tổng thu nhập trước khi trừ các khoản)
+                </span>
               </li>
               <li>
                 <FontAwesomeIcon icon={faShieldAlt} className="text-warning" />
                 <strong className="mx-2">Bảo hiểm:</strong>
                 {formatNumber(result.insurance)} VND
+                <span className="text-muted small ms-2">
+                  (BHXH {bhxh}%, BHYT {bhyt}%, BHTN {bhtn}%)
+                </span>
               </li>
               <li>
                 <FontAwesomeIcon
@@ -301,11 +385,17 @@ const SalaryCalculator: React.FC = () => {
                 />
                 <strong className="mx-2">Thuế TNCN:</strong>
                 {formatNumber(result.tax)} VND
+                <span className="text-muted small ms-2">
+                  (Thuế thu nhập cá nhân sau khi trừ giảm trừ gia cảnh)
+                </span>
               </li>
               <li>
                 <FontAwesomeIcon icon={faUserTie} className="text-success" />
                 <strong className="mx-2">Lương Net:</strong>
                 {formatNumber(result.net)} VND
+                <span className="text-muted small ms-2">
+                  (Số tiền thực nhận)
+                </span>
               </li>
             </ul>
             <Bar
@@ -317,6 +407,36 @@ const SalaryCalculator: React.FC = () => {
             />
           </div>
         )}
+
+        <div className="mt-5">
+          <h5 className="fw-semibold text-dark">
+            Thông tin thêm về tính lương
+          </h5>
+          <p className="text-muted">
+            <strong>Bảo hiểm xã hội (BHXH):</strong> Đóng {bhxh}% lương Gross,
+            giúp đảm bảo quyền lợi hưu trí, thai sản, ốm đau.
+          </p>
+          <p className="text-muted">
+            <strong>Bảo hiểm y tế (BHYT):</strong> Đóng {bhyt}% lương Gross, hỗ
+            trợ chi phí khám chữa bệnh.
+          </p>
+          <p className="text-muted">
+            <strong>Bảo hiểm thất nghiệp (BHTN):</strong> Đóng {bhtn}% lương
+            Gross, hỗ trợ khi mất việc làm.
+          </p>
+          <p className="text-muted">
+            <strong>Thuế thu nhập cá nhân (TNCN):</strong> Tính dựa trên thu
+            nhập chịu thuế (lương Gross trừ bảo hiểm và giảm trừ gia cảnh). Mức
+            giảm trừ hiện tại là 11 triệu VNĐ cho bản thân và 4.4 triệu VNĐ cho
+            mỗi người phụ thuộc.
+          </p>
+          <p className="text-muted">
+            <strong>Lương tối thiểu vùng:</strong> Là mức lương tối thiểu mà
+            doanh nghiệp phải trả cho người lao động, khác nhau tùy theo vùng
+            địa lý (Vùng I: đô thị lớn như Hà Nội, TP.HCM; Vùng IV: khu vực nông
+            thôn).
+          </p>
+        </div>
       </div>
     </Container>
   );
