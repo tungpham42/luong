@@ -152,7 +152,7 @@ const SalaryCalculator: React.FC = () => {
   };
 
   return (
-    <Container className="mt-5">
+    <Container className="my-5">
       <div className="calculator-card">
         <h2 className="text-center mb-4">
           <FontAwesomeIcon icon={faChartLine} className="me-2 text-primary" />
