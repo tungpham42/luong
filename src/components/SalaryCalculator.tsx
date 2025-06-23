@@ -30,6 +30,7 @@ import {
   faInfoCircle,
   faChartLine,
   faBuilding,
+  faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import regionData from "../data/regionData";
 
@@ -53,6 +54,7 @@ const SalaryCalculator: React.FC = () => {
     insurance: number;
     tax: number;
     employerContributions: number;
+    totalEmployerCost: number;
   } | null>(null);
 
   const [type, setType] = useState<"grossToNet" | "netToGross">("grossToNet");
@@ -130,6 +132,7 @@ const SalaryCalculator: React.FC = () => {
     let tax = 0;
     let net = 0;
     let employerContributions = 0;
+    let totalEmployerCost = 0;
 
     if (type === "grossToNet") {
       gross = salary;
@@ -141,6 +144,7 @@ const SalaryCalculator: React.FC = () => {
       );
       tax = getTNCN(taxableIncome);
       net = gross - insurance - tax;
+      totalEmployerCost = gross + employerContributions;
     } else {
       net = salary;
       let estimatedGross = net;
@@ -157,6 +161,7 @@ const SalaryCalculator: React.FC = () => {
       }
       gross = estimatedGross;
       employerContributions = gross * employerInsuranceRate;
+      totalEmployerCost = gross + employerContributions;
     }
 
     setResult({
@@ -165,11 +170,19 @@ const SalaryCalculator: React.FC = () => {
       insurance: Math.round(insurance),
       tax: Math.round(tax),
       employerContributions: Math.round(employerContributions),
+      totalEmployerCost: Math.round(totalEmployerCost),
     });
   };
 
   const chartData = result && {
-    labels: ["Gross", "Bảo hiểm NLĐ", "Thuế TNCN", "Net", "Bảo hiểm DN"],
+    labels: [
+      "Gross",
+      "Bảo hiểm NLĐ",
+      "Thuế TNCN",
+      "Net",
+      "Bảo hiểm DN",
+      "Tổng chi DN",
+    ],
     datasets: [
       {
         label: "VND",
@@ -179,6 +192,7 @@ const SalaryCalculator: React.FC = () => {
           result.tax,
           result.net,
           result.employerContributions,
+          result.totalEmployerCost,
         ],
         backgroundColor: [
           "#0d6efd",
@@ -186,6 +200,7 @@ const SalaryCalculator: React.FC = () => {
           "#dc3545",
           "#198754",
           "#6c757d",
+          "#17a2b8",
         ],
       },
     ],
@@ -501,6 +516,15 @@ const SalaryCalculator: React.FC = () => {
                   {employerBhtn}%)
                 </span>
               </li>
+              <li>
+                <FontAwesomeIcon icon={faWallet} className="text-info" />
+                <strong className="mx-2">Người sử dụng lao động trả:</strong>
+                {formatNumber(result.totalEmployerCost)} VND
+                <span className="text-muted small ms-2">
+                  (Tổng chi phí doanh nghiệp bao gồm lương Gross và bảo hiểm
+                  doanh nghiệp)
+                </span>
+              </li>
             </ul>
             <Bar
               data={chartData!}
@@ -524,9 +548,7 @@ const SalaryCalculator: React.FC = () => {
           <p className="text-muted">
             <strong>Bảo hiểm xã hội (BHXH) - Doanh nghiệp:</strong> Đóng{" "}
             {employerBhxh}% lương Gross, đóng góp vào quỹ BHXH cho người lao
-            động (14% vào quỹ hưu trí và tử tuất, 3% vào quỹ ốm đau và thai sản
-            và 0,5% còn lại vào quỹ bảo hiểm tai nạn lao động, bệnh nghề
-            nghiệp).
+            động.
           </p>
           <p className="text-muted">
             <strong>Bảo hiểm y tế (BHYT) - Người lao động:</strong> Đóng {bhyt}%
@@ -543,6 +565,12 @@ const SalaryCalculator: React.FC = () => {
           <p className="text-muted">
             <strong>Bảo hiểm thất nghiệp (BHTN) - Doanh nghiệp:</strong> Đóng{" "}
             {employerBhtn}% lương Gross, đóng góp vào quỹ BHTN.
+          </p>
+          <p className="text-muted">
+            <strong>Người sử dụng lao động trả:</strong> Là tổng chi phí mà
+            doanh nghiệp phải chi trả, bao gồm lương Gross và các khoản bảo hiểm
+            doanh nghiệp (BHXH {employerBhxh}%, BHYT {employerBhyt}%, BHTN{" "}
+            {employerBhtn}%).
           </p>
           <p className="text-muted">
             <strong>Thuế thu nhập cá nhân (TNCN):</strong> Tính dựa trên thu
