@@ -1,5 +1,3 @@
-// SalaryCalculator.tsx - Full Version with Font Awesome
-
 import React, { useState } from "react";
 import {
   Container,
@@ -25,7 +23,7 @@ import {
   faBriefcase,
   faShieldAlt,
   faMoneyBillWave,
-  faSmileBeam,
+  faUserTie,
   faInfoCircle,
   faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
@@ -52,24 +50,36 @@ const SalaryCalculator: React.FC = () => {
   } | null>(null);
 
   const [type, setType] = useState<"grossToNet" | "netToGross">("grossToNet");
-  const [bhxh, setBhxh] = useState<number>(8);
-  const [bhyt, setBhyt] = useState<number>(1.5);
-  const [bhtn, setBhtn] = useState<number>(1);
-  const [applyDate, setApplyDate] = useState<"post2020_07" | "pre2020_07">(
-    "post2020_07"
-  );
   const [dependents, setDependents] = useState<number>(0);
-  const [baseSalary, setBaseSalary] = useState<number>(1800000);
+  const [applyLaw, setApplyLaw] = useState<"2023_07" | "2024_07">("2024_07");
   const [region, setRegion] = useState<"I" | "II" | "III" | "IV">("I");
 
-  const regionalMinSalary = {
-    I: 4680000,
-    II: 4160000,
-    III: 3640000,
-    IV: 3250000,
+  const baseSalary = applyLaw === "2024_07" ? 2340000 : 1800000;
+  const bhxh = 8;
+  const bhyt = 1.5;
+  const bhtn = 1;
+
+  const regionalMinSalaryMap: Record<
+    "2023_07" | "2024_07",
+    Record<string, number>
+  > = {
+    "2023_07": {
+      I: 4680000,
+      II: 4160000,
+      III: 3640000,
+      IV: 3250000,
+    },
+    "2024_07": {
+      I: 4680000,
+      II: 4160000,
+      III: 3640000,
+      IV: 3250000,
+    },
   };
 
-  const personalDeduction = applyDate === "post2020_07" ? 11000000 : 9000000;
+  const regionalMinSalary = regionalMinSalaryMap[applyLaw][region];
+
+  const personalDeduction = 11000000;
   const dependentDeduction = dependents * 4400000;
 
   const getTNCN = (taxableIncome: number): number => {
@@ -154,42 +164,58 @@ const SalaryCalculator: React.FC = () => {
   return (
     <Container className="my-5">
       <div className="calculator-card">
-        <h2 className="text-center mb-4">
+        <h2 className="text-center mb-4 fw-bold text-dark">
           <FontAwesomeIcon icon={faChartLine} className="me-2 text-primary" />
-          Công cụ tính lương Gross ↔ Net
+          Công cụ tính lương Gross & Net theo quy định hiện hành
         </h2>
 
         <Form>
           <Row className="mb-3">
-            <Col>
-              <Form.Label className="me-2">Chọn loại tính</Form.Label>
-              <ToggleButtonGroup
-                type="radio"
-                name="conversionType"
-                value={type}
-                onChange={(val: any) => setType(val)}
+            <Col md={6}>
+              <Form.Label className="fw-semibold text-dark">
+                Chọn thời điểm áp dụng quy định
+              </Form.Label>
+              <Form.Select
+                value={applyLaw}
+                onChange={(e) => setApplyLaw(e.target.value as any)}
               >
-                <ToggleButton
-                  value="grossToNet"
-                  id="grossToNet"
-                  variant="outline-primary"
+                <option value="2024_07">Từ 01/07/2024</option>
+                <option value="2023_07">Từ 01/07/2023 - 30/06/2024</option>
+              </Form.Select>
+            </Col>
+            <Col md={6}>
+              <Form.Label className="fw-semibold text-dark">
+                Loại tính
+              </Form.Label>
+              <div className="mt-0">
+                <ToggleButtonGroup
+                  type="radio"
+                  name="conversionType"
+                  value={type}
+                  onChange={(val: any) => setType(val)}
                 >
-                  Gross → Net
-                </ToggleButton>
-                <ToggleButton
-                  value="netToGross"
-                  id="netToGross"
-                  variant="outline-primary"
-                >
-                  Net → Gross
-                </ToggleButton>
-              </ToggleButtonGroup>
+                  <ToggleButton
+                    value="grossToNet"
+                    id="grossToNet"
+                    variant="outline-primary"
+                  >
+                    Gross → Net
+                  </ToggleButton>
+                  <ToggleButton
+                    value="netToGross"
+                    id="netToGross"
+                    variant="outline-primary"
+                  >
+                    Net → Gross
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </div>
             </Col>
           </Row>
 
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Label>
+              <Form.Label className="fw-semibold text-dark">
                 Mức lương ({type === "grossToNet" ? "Gross" : "Net"})
               </Form.Label>
               <Form.Control
@@ -199,71 +225,23 @@ const SalaryCalculator: React.FC = () => {
                 onChange={(e) => setSalary(parseNumber(e.target.value))}
               />
             </Col>
-          </Row>
-
-          <Row className="mb-3">
             <Col md={6}>
-              <Form.Label>Thời kỳ luật thuế</Form.Label>
-              <Form.Select
-                value={applyDate}
-                onChange={(e) => setApplyDate(e.target.value as any)}
-              >
-                <option value="post2020_07">Từ 01/07/2020 đến nay</option>
-                <option value="pre2020_07">Từ 01/01/2020 đến 30/06/2020</option>
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <Form.Label>Số người phụ thuộc</Form.Label>
+              <Form.Label className="fw-semibold text-dark">
+                Số người phụ thuộc
+              </Form.Label>
               <Form.Control
                 type="number"
                 value={dependents}
                 onChange={(e) => setDependents(Number(e.target.value))}
               />
             </Col>
-            <Col md={3}>
-              <Form.Label>Lương cơ sở</Form.Label>
-              <Form.Control
-                type="text"
-                inputMode="numeric"
-                value={formatNumber(baseSalary)}
-                onChange={(e) => setBaseSalary(parseNumber(e.target.value))}
-              />
-            </Col>
           </Row>
 
           <Row className="mb-3">
-            <Col md={4}>
-              <Form.Label>BHXH (%)</Form.Label>
-              <Form.Control
-                type="text"
-                inputMode="numeric"
-                value={formatNumber(bhxh)}
-                onChange={(e) => setBhxh(parseNumber(e.target.value))}
-              />
-            </Col>
-            <Col md={4}>
-              <Form.Label>BHYT (%)</Form.Label>
-              <Form.Control
-                type="text"
-                inputMode="numeric"
-                value={formatNumber(bhyt)}
-                onChange={(e) => setBhyt(parseNumber(e.target.value))}
-              />
-            </Col>
-            <Col md={4}>
-              <Form.Label>BHTN (%)</Form.Label>
-              <Form.Control
-                type="text"
-                inputMode="numeric"
-                value={formatNumber(bhtn)}
-                onChange={(e) => setBhtn(parseNumber(e.target.value))}
-              />
-            </Col>
-          </Row>
-
-          <Row className="mb-3">
-            <Col md={4}>
-              <Form.Label>Chọn vùng</Form.Label>
+            <Col md={6}>
+              <Form.Label className="fw-semibold text-dark">
+                Chọn vùng
+              </Form.Label>
               <Form.Select
                 value={region}
                 onChange={(e) => setRegion(e.target.value as any)}
@@ -274,19 +252,30 @@ const SalaryCalculator: React.FC = () => {
                 <option value="IV">Vùng IV</option>
               </Form.Select>
             </Col>
-            <Col md={8} className="d-flex align-items-end">
-              <div className="text-muted">
+            <Col md={6} className="d-flex align-items-end">
+              <div className="text-muted small">
                 <FontAwesomeIcon
                   icon={faInfoCircle}
                   className="me-2 text-secondary"
                 />
-                Lương tối thiểu vùng:{" "}
-                <strong>{formatNumber(regionalMinSalary[region])} VND</strong>
+                Lương cơ sở:
+                <strong className="ms-2">
+                  {formatNumber(baseSalary)} VND
+                </strong>{" "}
+                – Lương tối thiểu vùng:
+                <strong className="ms-2">
+                  {formatNumber(regionalMinSalary)} VND
+                </strong>
               </div>
             </Col>
           </Row>
 
-          <Button variant="primary" onClick={handleCalculate}>
+          <Button
+            variant="primary"
+            size="lg"
+            className="mt-3 w-100"
+            onClick={handleCalculate}
+          >
             Tính toán
           </Button>
         </Form>
@@ -296,32 +285,27 @@ const SalaryCalculator: React.FC = () => {
             <h4>Kết quả:</h4>
             <ul>
               <li>
-                <FontAwesomeIcon
-                  icon={faBriefcase}
-                  className="me-2 text-primary"
-                />
-                <strong>Lương Gross:</strong> {formatNumber(result.gross)} VND
+                <FontAwesomeIcon icon={faBriefcase} className="text-primary" />
+                <strong className="mx-2">Lương Gross:</strong>
+                {formatNumber(result.gross)} VND
               </li>
               <li>
-                <FontAwesomeIcon
-                  icon={faShieldAlt}
-                  className="me-2 text-warning"
-                />
-                <strong>Bảo hiểm:</strong> {formatNumber(result.insurance)} VND
+                <FontAwesomeIcon icon={faShieldAlt} className="text-warning" />
+                <strong className="mx-2">Bảo hiểm:</strong>
+                {formatNumber(result.insurance)} VND
               </li>
               <li>
                 <FontAwesomeIcon
                   icon={faMoneyBillWave}
-                  className="me-2 text-danger"
+                  className="text-danger"
                 />
-                <strong>Thuế TNCN:</strong> {formatNumber(result.tax)} VND
+                <strong className="mx-2">Thuế TNCN:</strong>
+                {formatNumber(result.tax)} VND
               </li>
               <li>
-                <FontAwesomeIcon
-                  icon={faSmileBeam}
-                  className="me-2 text-success"
-                />
-                <strong>Lương Net:</strong> {formatNumber(result.net)} VND
+                <FontAwesomeIcon icon={faUserTie} className="text-success" />
+                <strong className="mx-2">Lương Net:</strong>
+                {formatNumber(result.net)} VND
               </li>
             </ul>
             <Bar
