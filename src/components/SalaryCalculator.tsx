@@ -123,6 +123,51 @@ const SalaryCalculator: React.FC = () => {
     return tax;
   };
 
+  const getTNCNDetails = (
+    taxableIncome: number
+  ): {
+    brackets: Array<{ range: string; rate: number; tax: number }>;
+    total: number;
+  } => {
+    const taxBrackets = [
+      { min: 0, max: 5000000, rate: 0.05 },
+      { min: 5000000, max: 10000000, rate: 0.1 },
+      { min: 10000000, max: 18000000, rate: 0.15 },
+      { min: 18000000, max: 32000000, rate: 0.2 },
+      { min: 32000000, max: 52000000, rate: 0.25 },
+      { min: 52000000, max: 80000000, rate: 0.3 },
+      { min: 80000000, max: Infinity, rate: 0.35 },
+    ];
+
+    let incomeLeft = taxableIncome;
+    let totalTax = 0;
+    const brackets = [];
+
+    for (const bracket of taxBrackets) {
+      if (incomeLeft <= 0) break;
+
+      const bracketRange =
+        bracket.max === Infinity
+          ? `Trên ${formatNumber(bracket.min)} VND`
+          : `${formatNumber(bracket.min)} - ${formatNumber(bracket.max)} VND`;
+
+      const taxableAmount = Math.min(incomeLeft, bracket.max - bracket.min);
+      const bracketTax = taxableAmount * bracket.rate;
+
+      if (taxableAmount > 0) {
+        brackets.push({
+          range: bracketRange,
+          rate: bracket.rate * 100,
+          tax: bracketTax,
+        });
+        totalTax += bracketTax;
+        incomeLeft -= taxableAmount;
+      }
+    }
+
+    return { brackets, total: totalTax };
+  };
+
   const handleCalculate = () => {
     const employeeInsuranceRate = (bhxh + bhyt + bhtn) / 100;
     const employerInsuranceRate =
@@ -526,6 +571,68 @@ const SalaryCalculator: React.FC = () => {
                 </span>
               </li>
             </ul>
+            <div className="mt-4">
+              <h5>
+                <FontAwesomeIcon
+                  icon={faMoneyBillWave}
+                  className="text-danger me-2"
+                />
+                Chi tiết thuế thu nhập cá nhân
+              </h5>
+              <p className="text-muted small">
+                Thuế TNCN được tính theo lũy tiến từng phần, dưới đây là cách
+                phân bổ thuế theo các mức thu nhập chịu thuế.
+              </p>
+
+              <div className="table-responsive">
+                <table className="table table-bordered">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Bậc thuế</th>
+                      <th>Thu nhập tính thuế/năm</th>
+                      <th>Thu nhập tính thuế/tháng</th>
+                      <th>Thuế suất</th>
+                      <th>Số thuế phải nộp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getTNCNDetails(
+                      Math.max(
+                        result.gross -
+                          result.insurance -
+                          personalDeduction -
+                          dependentDeduction,
+                        0
+                      )
+                    ).brackets.map((bracket, index) => (
+                      <tr key={index}>
+                        <td>Bậc {index + 1}</td>
+                        <td>{bracket.range.replace("VND", "VND/năm")}</td>
+                        <td>{bracket.range.replace("VND", "VND/tháng")}</td>
+                        <td>{bracket.rate}%</td>
+                        <td>{formatNumber(Math.round(bracket.tax))} VND</td>
+                      </tr>
+                    ))}
+                    <tr className="table-active">
+                      <td colSpan={4} className="text-end fw-bold">
+                        Tổng thuế TNCN phải nộp:
+                      </td>
+                      <td className="fw-bold">
+                        {formatNumber(result.tax)} VND
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="alert alert-info mt-3">
+                <strong>Giải thích:</strong> Thuế TNCN tính theo phương pháp lũy
+                tiến từng phần. Thu nhập tính thuế = Lương Gross - Bảo hiểm -
+                Giảm trừ (11 triệu cho bản thân + 4.4 triệu/người phụ thuộc).
+                Thuế được tính theo từng bậc, mỗi bậc chỉ áp dụng thuế suất cho
+                phần thu nhập vượt quá ngưỡng bậc đó.
+              </div>
+            </div>
             <Bar
               data={chartData!}
               options={{
