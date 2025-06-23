@@ -524,7 +524,9 @@ const SalaryCalculator: React.FC = () => {
           <p className="text-muted">
             <strong>Bảo hiểm xã hội (BHXH) - Doanh nghiệp:</strong> Đóng{" "}
             {employerBhxh}% lương Gross, đóng góp vào quỹ BHXH cho người lao
-            động.
+            động (14% vào quỹ hưu trí và tử tuất, 3% vào quỹ ốm đau và thai sản
+            và 0,5% còn lại vào quỹ bảo hiểm tai nạn lao động, bệnh nghề
+            nghiệp).
           </p>
           <p className="text-muted">
             <strong>Bảo hiểm y tế (BHYT) - Người lao động:</strong> Đóng {bhyt}%
