@@ -9,7 +9,7 @@ import {
   ToggleButton,
   OverlayTrigger,
   Tooltip,
-  Modal, // Add Modal import
+  Modal,
 } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 import {
@@ -29,6 +29,7 @@ import {
   faUserTie,
   faInfoCircle,
   faChartLine,
+  faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 import regionData from "../data/regionData";
 
@@ -51,18 +52,24 @@ const SalaryCalculator: React.FC = () => {
     gross: number;
     insurance: number;
     tax: number;
+    employerContributions: number;
   } | null>(null);
 
   const [type, setType] = useState<"grossToNet" | "netToGross">("grossToNet");
   const [dependents, setDependents] = useState<number>(0);
   const [applyLaw, setApplyLaw] = useState<"2023_07" | "2024_07">("2024_07");
   const [region, setRegion] = useState<"I" | "II" | "III" | "IV">("I");
-  const [showModal, setShowModal] = useState<boolean>(false); // State for modal visibility
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const baseSalary = applyLaw === "2024_07" ? 2340000 : 1800000;
+  // Employee contribution rates
   const bhxh = 8;
   const bhyt = 1.5;
   const bhtn = 1;
+  // Employer contribution rates
+  const employerBhxh = 17.5;
+  const employerBhyt = 3;
+  const employerBhtn = 1;
 
   const regionalMinSalaryMap: Record<
     "2023_07" | "2024_07",
@@ -75,7 +82,7 @@ const SalaryCalculator: React.FC = () => {
       IV: 3250000,
     },
     "2024_07": {
-      I: 4960000, // Updated for 2024_07
+      I: 4960000,
       II: 4410000,
       III: 3860000,
       IV: 3450000,
@@ -115,15 +122,19 @@ const SalaryCalculator: React.FC = () => {
   };
 
   const handleCalculate = () => {
-    const insuranceRate = (bhxh + bhyt + bhtn) / 100;
+    const employeeInsuranceRate = (bhxh + bhyt + bhtn) / 100;
+    const employerInsuranceRate =
+      (employerBhxh + employerBhyt + employerBhtn) / 100;
     let gross = 0;
     let insurance = 0;
     let tax = 0;
     let net = 0;
+    let employerContributions = 0;
 
     if (type === "grossToNet") {
       gross = salary;
-      insurance = gross * insuranceRate;
+      insurance = gross * employeeInsuranceRate;
+      employerContributions = gross * employerInsuranceRate;
       const taxableIncome = Math.max(
         gross - insurance - personalDeduction - dependentDeduction,
         0
@@ -134,7 +145,7 @@ const SalaryCalculator: React.FC = () => {
       net = salary;
       let estimatedGross = net;
       for (let i = 0; i < 30; i++) {
-        insurance = estimatedGross * insuranceRate;
+        insurance = estimatedGross * employeeInsuranceRate;
         const taxableIncome = Math.max(
           estimatedGross - insurance - personalDeduction - dependentDeduction,
           0
@@ -145,6 +156,7 @@ const SalaryCalculator: React.FC = () => {
         estimatedGross += net - estimatedNet;
       }
       gross = estimatedGross;
+      employerContributions = gross * employerInsuranceRate;
     }
 
     setResult({
@@ -152,16 +164,29 @@ const SalaryCalculator: React.FC = () => {
       gross: Math.round(gross),
       insurance: Math.round(insurance),
       tax: Math.round(tax),
+      employerContributions: Math.round(employerContributions),
     });
   };
 
   const chartData = result && {
-    labels: ["Gross", "Bảo hiểm", "Thuế TNCN", "Net"],
+    labels: ["Gross", "Bảo hiểm NLĐ", "Thuế TNCN", "Net", "Bảo hiểm DN"],
     datasets: [
       {
         label: "VND",
-        data: [result.gross, result.insurance, result.tax, result.net],
-        backgroundColor: ["#0d6efd", "#f0ad4e", "#dc3545", "#198754"],
+        data: [
+          result.gross,
+          result.insurance,
+          result.tax,
+          result.net,
+          result.employerContributions,
+        ],
+        backgroundColor: [
+          "#0d6efd",
+          "#f0ad4e",
+          "#dc3545",
+          "#198754",
+          "#6c757d",
+        ],
       },
     ],
   };
@@ -176,8 +201,8 @@ const SalaryCalculator: React.FC = () => {
         <p className="text-muted text-center mb-4">
           Tính lương Gross sang Net hoặc Net sang Gross chính xác theo quy định
           pháp luật Việt Nam. Công cụ giúp bạn hiểu rõ các khoản khấu trừ như
-          bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp và thuế thu nhập
-          cá nhân.
+          bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp, thuế thu nhập cá
+          nhân và các khoản doanh nghiệp phải đóng.
         </p>
 
         <Form>
@@ -327,7 +352,6 @@ const SalaryCalculator: React.FC = () => {
                 <option value="III">Vùng III</option>
                 <option value="IV">Vùng IV</option>
               </Form.Select>
-              {/* Button to trigger modal */}
               <Button
                 variant="link"
                 className="p-0 mt-2 text-primary"
@@ -364,7 +388,6 @@ const SalaryCalculator: React.FC = () => {
           </Button>
         </Form>
 
-        {/* Modal for Region Details */}
         <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
           <Modal.Header closeButton>
             <Modal.Title>Thông tin về vùng và mức lương tối thiểu</Modal.Title>
@@ -429,9 +452,9 @@ const SalaryCalculator: React.FC = () => {
           <div className="result-box mt-5">
             <h4>Kết quả tính lương</h4>
             <p className="text-muted small">
-              Dưới đây là chi tiết các khoản thu nhập và khấu trừ dựa trên thông
-              tin bạn cung cấp. Biểu đồ minh họa giúp bạn hình dung rõ hơn về tỷ
-              lệ các thành phần.
+              Dưới đây là chi tiết các khoản thu nhập, khấu trừ và chi phí doanh
+              nghiệp dựa trên thông tin bạn cung cấp. Biểu đồ minh họa giúp bạn
+              hình dung rõ hơn về tỷ lệ các thành phần.
             </p>
             <ul>
               <li>
@@ -444,7 +467,7 @@ const SalaryCalculator: React.FC = () => {
               </li>
               <li>
                 <FontAwesomeIcon icon={faShieldAlt} className="text-warning" />
-                <strong className="mx-2">Bảo hiểm:</strong>
+                <strong className="mx-2">Bảo hiểm người lao động:</strong>
                 {formatNumber(result.insurance)} VND
                 <span className="text-muted small ms-2">
                   (BHXH {bhxh}%, BHYT {bhyt}%, BHTN {bhtn}%)
@@ -469,6 +492,15 @@ const SalaryCalculator: React.FC = () => {
                   (Số tiền thực nhận)
                 </span>
               </li>
+              <li>
+                <FontAwesomeIcon icon={faBuilding} className="text-secondary" />
+                <strong className="mx-2">Bảo hiểm doanh nghiệp:</strong>
+                {formatNumber(result.employerContributions)} VND
+                <span className="text-muted small ms-2">
+                  (BHXH {employerBhxh}%, BHYT {employerBhyt}%, BHTN{" "}
+                  {employerBhtn}%)
+                </span>
+              </li>
             </ul>
             <Bar
               data={chartData!}
@@ -485,16 +517,30 @@ const SalaryCalculator: React.FC = () => {
             Thông tin thêm về tính lương
           </h5>
           <p className="text-muted">
-            <strong>Bảo hiểm xã hội (BHXH):</strong> Đóng {bhxh}% lương Gross,
-            giúp đảm bảo quyền lợi hưu trí, thai sản, ốm đau.
+            <strong>Bảo hiểm xã hội (BHXH) - Người lao động:</strong> Đóng{" "}
+            {bhxh}% lương Gross, giúp đảm bảo quyền lợi hưu trí, thai sản, ốm
+            đau.
           </p>
           <p className="text-muted">
-            <strong>Bảo hiểm y tế (BHYT):</strong> Đóng {bhyt}% lương Gross, hỗ
-            trợ chi phí khám chữa bệnh.
+            <strong>Bảo hiểm xã hội (BHXH) - Doanh nghiệp:</strong> Đóng{" "}
+            {employerBhxh}% lương Gross, đóng góp vào quỹ BHXH cho người lao
+            động.
           </p>
           <p className="text-muted">
-            <strong>Bảo hiểm thất nghiệp (BHTN):</strong> Đóng {bhtn}% lương
-            Gross, hỗ trợ khi mất việc làm.
+            <strong>Bảo hiểm y tế (BHYT) - Người lao động:</strong> Đóng {bhyt}%
+            lương Gross, hỗ trợ chi phí khám chữa bệnh.
+          </p>
+          <p className="text-muted">
+            <strong>Bảo hiểm y tế (BHYT) - Doanh nghiệp:</strong> Đóng{" "}
+            {employerBhyt}% lương Gross, hỗ trợ quỹ BHYT cho người lao động.
+          </p>
+          <p className="text-muted">
+            <strong>Bảo hiểm thất nghiệp (BHTN) - Người lao động:</strong> Đóng{" "}
+            {bhtn}% lương Gross, hỗ trợ khi mất việc làm.
+          </p>
+          <p className="text-muted">
+            <strong>Bảo hiểm thất nghiệp (BHTN) - Doanh nghiệp:</strong> Đóng{" "}
+            {employerBhtn}% lương Gross, đóng góp vào quỹ BHTN.
           </p>
           <p className="text-muted">
             <strong>Thuế thu nhập cá nhân (TNCN):</strong> Tính dựa trên thu
