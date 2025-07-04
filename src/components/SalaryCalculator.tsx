@@ -589,8 +589,7 @@ const SalaryCalculator: React.FC = () => {
                   <thead className="table-light">
                     <tr>
                       <th>Bậc thuế</th>
-                      <th>Thu nhập tính thuế/năm</th>
-                      <th>Thu nhập tính thuế/tháng</th>
+                      <th>Thu nhập tính thuế</th>
                       <th>Thuế suất</th>
                       <th>Số thuế phải nộp</th>
                     </tr>
@@ -607,14 +606,13 @@ const SalaryCalculator: React.FC = () => {
                     ).brackets.map((bracket, index) => (
                       <tr key={index}>
                         <td>Bậc {index + 1}</td>
-                        <td>{bracket.range.replace("VND", "VND/năm")}</td>
-                        <td>{bracket.range.replace("VND", "VND/tháng")}</td>
+                        <td>{bracket.range}</td>
                         <td>{bracket.rate}%</td>
                         <td>{formatNumber(Math.round(bracket.tax))} VND</td>
                       </tr>
                     ))}
                     <tr className="table-active">
-                      <td colSpan={4} className="text-end fw-bold">
+                      <td colSpan={3} className="text-end fw-bold">
                         Tổng thuế TNCN phải nộp:
                       </td>
                       <td className="fw-bold">
