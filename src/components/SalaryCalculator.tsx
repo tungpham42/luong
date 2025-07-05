@@ -59,7 +59,7 @@ const SalaryCalculator: React.FC = () => {
 
   const [type, setType] = useState<"grossToNet" | "netToGross">("grossToNet");
   const [dependents, setDependents] = useState<number>(0);
-  const [applyLaw, setApplyLaw] = useState<"2023_07" | "2024_07">("2024_07");
+  const [applyLaw, setApplyLaw] = useState<"2024_07" | "2025_07">("2025_07");
   const [region, setRegion] = useState<"I" | "II" | "III" | "IV">("I");
   const [showModal, setShowModal] = useState<boolean>(false);
 
@@ -74,16 +74,16 @@ const SalaryCalculator: React.FC = () => {
   const employerBhtn = 1;
 
   const regionalMinSalaryMap: Record<
-    "2023_07" | "2024_07",
+    "2024_07" | "2025_07",
     Record<string, number>
   > = {
-    "2023_07": {
-      I: 4680000,
-      II: 4160000,
-      III: 3640000,
-      IV: 3250000,
-    },
     "2024_07": {
+      I: 4960000,
+      II: 4410000,
+      III: 3860000,
+      IV: 3450000,
+    },
+    "2025_07": {
       I: 4960000,
       II: 4410000,
       III: 3860000,
@@ -290,8 +290,8 @@ const SalaryCalculator: React.FC = () => {
                 value={applyLaw}
                 onChange={(e) => setApplyLaw(e.target.value as any)}
               >
-                <option value="2024_07">Từ 01/07/2024</option>
-                <option value="2023_07">Từ 01/07/2023 - 30/06/2024</option>
+                <option value="2024_07">Từ 01/07/2024 - 30/06/2025</option>
+                <option value="2025_07">Từ 01/07/2025</option>
               </Form.Select>
               <p className="text-muted small mt-1">
                 Chọn thời điểm để áp dụng mức lương cơ sở và các quy định về bảo
